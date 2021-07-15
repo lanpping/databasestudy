@@ -1,0 +1,60 @@
+cd C:\Program Files (x86)\mysql-8.0.23-winx64\bin
+
+mysql -u root -p
+
+show databases;
+
+use zytest;  
+
+select * from userlist;
+
+1、读锁
+
+第一个窗口加读锁
+lock table userlist read;
+
+第二个窗口进行查询和插入操作
+select * from userlist;
+
+insert into userlist value(1111,"读锁下测试新窗口是否可以插入",0);
+（等待）
+第一个窗口解锁
+unlock table;
+
+第二个窗口插入成功了
+select * from userlist;
+
+
+2、写锁
+
+窗口1加写锁
+lock table userlist write;
+
+新窗口：
+select * from userlist;
+
+窗口1：
+select * from userlist;
+
+insert into userlist value(1112,"写锁下测试原窗口是否可以插入",0);
+
+
+unlock table;
+
+新窗口：
+select * from userlist;
+insert into userlist value(1113,"写锁下测试新窗口是否可以插入",0);
+select * from userlist;
+
+
+
+
+
+
+
+
+
+
+
+
+

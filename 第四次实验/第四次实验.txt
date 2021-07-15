@@ -1,0 +1,37 @@
+
+查看profiling信息
+show variables like '%profiling%';
+
+开启profiling
+set profiling=1;
+
+执行SQL查询
+select count(*) from myorder;
+
+查看执行的SQL列表
+show profiles;
+
+查询指定ID的执行详细信息  
+show profile for query 2;
+
+获取CPU,Block IO信息
+show profile block io,cpu for query 2;
+
+mysqlslap:
+
+mysqlslap -uroot -proot --concurrency=50 --create-schema=cloudservers --query="select count(*) from myorder;"
+
+
+mysqlslap -uroot -proot --concurrency=100 --number-of-queries=1000 --create-schema=cloudservers --query="select count(*) from myorder;"
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,109 @@
+DROP TABLE IF EXISTS `mysum`;
+create table mysum as
+select TG.FID AS fwsID,
+TG.FN AS fwsName,
+COUNT( TG.KID ) AS kfNums,
+SUM( TG.ONUM ) AS orderNums 
+FROM
+(
+select FB.FN AS FN,
+FB.FID AS FID,
+FB.KID AS KID,
+IFNULL( COUNT( DISTINCT `weekly`.id ), 0 ) AS ONUM 
+FROM( SELECT
+S.`name` AS FN,
+S.id AS FID,
+B.id AS KID 
+FROM
+`user` AS S
+INNER JOIN `user` AS B ON S.id = B.parent AND B.type=3
+) AS FB
+LEFT JOIN `weekly` ON FB.KID = `weekly`.userId
+GROUP BY
+weekly.userId,FB.FN,FB.FID,FB.KID
+) AS TG
+ GROUP BY TG.FID
+ORDER BY TG.FID;
+
+
+用户表
+客服
+DROP PROCEDURE IF EXISTS `user_datebase`;
+DELIMITER $$
+CREATE PROCEDURE user_datebase()
+BEGIN
+SET @i=1018;
+SET @m=14;
+WHILE @i<1118 DO
+INSERT INTO user(id,name,password,email,type,parent,tel,state) 
+VALUES(CONCAT(@i),CONCAT("kf",@m),CONCAT("e10adc3949ba59abbe56e057f20f883e"),CONCAT("1849721967@163.com"),CONCAT("3"),CONCAT("1004"),CONCAT("226547582"),CONCAT("1")); 
+SET @i=@i+1; 
+SET @m=@m+1; 
+END WHILE;
+END $$
+DELIMITER ;
+
+CALL user_datebase();
+
+服务商
+DROP PROCEDURE IF EXISTS `user_datebase`;
+DELIMITER $$
+CREATE PROCEDURE user_datebase()
+BEGIN
+SET @i=1118;
+SET @m=5;
+WHILE @i<1218 DO
+INSERT INTO user(id,name,password,email,type,parent,tel,state) 
+VALUES(CONCAT(@i),CONCAT("fws",@m),CONCAT("e10adc3949ba59abbe56e057f20f883e"),CONCAT("186666667@163.com"),CONCAT("2"),CONCAT(""),CONCAT("166666666"),CONCAT("1")); 
+SET @i=@i+1; 
+SET @m=@m+1; 
+END WHILE;
+END $$
+DELIMITER ;
+
+CALL user_datebase();
+
+
+
+
+
+
+
+订单表
+DROP PROCEDURE IF EXISTS `weekly_datebase`;
+DELIMITER $$
+CREATE PROCEDURE weekly_datebase()
+BEGIN
+SET @i=21;
+WHILE @i<1021 DO
+INSERT INTO weekly(id,userId,startTime,title,state,buyer) 
+VALUES(CONCAT(@i),CONCAT("1002"),CONCAT("2017-12-11 16:16"),CONCAT("苹果"),CONCAT("1"),CONCAT("顺利")); 
+SET @i=@i+1; 
+END WHILE;
+END $$
+DELIMITER ;
+
+CALL weekly_datebase();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

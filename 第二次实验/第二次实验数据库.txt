@@ -1,0 +1,118 @@
+
+DROP TABLE IF EXISTS `table_orderpw_memory`;
+
+CREATE TABLE `table_orderpw_memory` (
+  `O_ID` int NOT NULL AUTO_INCREMENT COMMENT '订单ID',
+  `NAME` varchar(20) NOT NULL COMMENT '订单名称',
+  `NUM` int NOT NULL COMMENT '数量',
+  `PRICE` int  NOT NULL COMMENT '价格',
+  `USER_NAME` varchar(20) NOT NULL COMMENT '买家姓名',
+  `USER_NOTE` varchar(255) DEFAULT NULL COMMENT '买家备注',
+  `ORDER_TIME` datetime NOT NULL COMMENT '下单时间',
+  `PAY_STATUS` int NOT NULL COMMENT '支付状态',
+  `SALLER_NOTE` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '卖家备注',
+  `S_ID` int NOT NULL COMMENT '客服ID',
+  `USER_ADREE` varchar(255) NOT NULL,
+  `USER_TEL` int NOT NULL,
+  PRIMARY KEY (`O_ID`)
+) ENGINE=MEMORY AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `myorder`;
+
+CREATE TABLE `myorder` (
+  `O_ID` int NOT NULL AUTO_INCREMENT COMMENT '订单ID',
+  `NAME` varchar(20) NOT NULL COMMENT '订单名称',
+  `NUM` int NOT NULL COMMENT '数量',
+  `PRICE` int NOT NULL COMMENT '价格',
+  `USER_NAME` varchar(20) NOT NULL COMMENT '买家姓名',
+  `USER_NOTE` varchar(255) DEFAULT NULL COMMENT '买家备注',
+  `ORDER_TIME` datetime NOT NULL COMMENT '下单时间',
+  `PAY_STATUS` int NOT NULL COMMENT '支付状态',
+  `SALLER_NOTE` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '卖家备注',
+  `S_ID` int NOT NULL COMMENT '客服ID',
+  `USER_ADREE` varchar(255) NOT NULL,
+  `USER_TEL` int NOT NULL,
+  PRIMARY KEY (`O_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+
+
+DELIMITER //
+CREATE FUNCTION `rand_string` (n INT) RETURNS VARCHAR(255)
+DETERMINISTIC
+BEGIN
+    DECLARE chars_str VARCHAR(100) DEFAULT 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    DECLARE return_str VARCHAR(255) DEFAULT '';
+    DECLARE i INT DEFAULT 0;
+    WHILE i < n DO
+        SET return_str = CONCAT(return_str,SUBSTRING(chars_str , FLOOR(1 + RAND()*62 ),1));
+        SET i = i +1;
+    END WHILE;
+    RETURN return_str;
+END //
+
+
+DROP PROCEDURE IF EXISTS `add_orderpw_memory`;
+
+DELIMITER //
+CREATE PROCEDURE `add_orderpw_memory`(n int,len int)
+BEGIN
+    DECLARE i INT UNSIGNED DEFAULT 0;
+    WHILE (i <= n) DO
+        INSERT INTO `table_orderpw_memory`(NAME,NUM,PRICE,USER_NAME,USER_NOTE,ORDER_TIME,PAY_STATUS,SALLER_NOTE,S_ID,USER_ADREE,USER_TEL) 
+        VALUES (rand_string(len),FLOOR(RAND()*100),FLOOR(RAND()*100),rand_string(len),rand_string(len),NOW(),round(RAND()),rand_string(len),1000+i,rand_string(len),FLOOR(RAND()*100));
+        SET i = i+1;
+    END WHILE;
+END //
+
+DELIMITER //
+CREATE PROCEDURE `add_myorder`(n int,len int)
+BEGIN
+    DECLARE i INT UNSIGNED DEFAULT 0;
+    WHILE (i <= n) DO
+        INSERT INTO `myorder`(NAME,NUM,PRICE,USER_NAME,USER_NOTE,ORDER_TIME,PAY_STATUS,SALLER_NOTE,S_ID,USER_ADREE,USER_TEL) 
+        VALUES (rand_string(len),FLOOR(RAND()*100),FLOOR(RAND()*100),rand_string(len),rand_string(len),NOW(),round(RAND()),rand_string(len),1000+i,rand_string(len),FLOOR(RAND()*100));
+        SET i = i+1;
+    END WHILE;
+END //
+
+
+DELIMITER ;
+
+call add_orderpw_memory(500000,6);
+
+call add_myorder(500000,6);
+
+insert into myorder select * from table_orderpw_memory;
+
+select count(*) from myorder;
+
+delete from table_orderpw_memory;
+
+truncate table_orderpw_memory;
+
+truncate myorder;
+
+ show VARIABLES like '%%table_size%';
+
+ 
+service mysql restart;
+systemctl restart mysql.service
+
+
+max_connections=200
+character-set-server=utf8
+default-storage-engine=INNODB
+max_heap_table_size=2048M
+tmp_table_size=2048M
+
+# vim C:\Program Files (x86)\mysql-8.0.23-winx64\mysql.ini
+
+ set @@max_heap_table_size=1024*1024*512;
+
+ set global max_heap_table_size=1024*1024*512;
+
+set global tmp_table_size=1024*1024*512;
+
+

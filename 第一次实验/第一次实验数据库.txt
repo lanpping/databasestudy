@@ -1,0 +1,109 @@
+cd C:\Program Files (x86)\mysql-8.0.23-winx64\bin
+
+mysql -u root -p
+
+create database CloudServers;
+
+show databases;
+
+use cloudservers;
+
+create table servers (
+   S_ID int(11) not null primary key comment '服务商/客服ID',
+    P_ID int(11) comment '所属服务商ID',
+    ROLE_NAME varchar(20) comment '角色名称',
+    USER_NAME varchar(20) comment '用户名称',
+    USER_TEL varchar(11) comment '用户电话');
+
+desc servers;
+
+ insert into 'servers' values (1001,null,'服务商','张大大服务商','110'),(1002,1001,'客服1','客服1','111'), (1003,1001,'客服2','客服2','112'),(1004,null,'服务商','武大大服务商','113'),(1005,1004,'客服3','客服3','114'),(1006,1004,'客服','客服4','115'),(1007,null,'服务商','成大大服务商','117'),(1008,1007,'客服5','客服5','118');
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ''servers' values (1001,null,'服务商','张大大服务商','110'),(1002,1001,'' at line 1
+mysql> insert into servers values (1001,null,'服务商','张大大服务商','110'),(1002,1001,'客服1','客服1','111'), (1003,1001,'客服2','客服2','112'),(1004,null,'服务商','武大大服务商','113'),(1005,1004,'客服3','客服3','114'),(1006,1004,'客服4','客服4','115'),(1007,null,'服务商','成大大服务商','117'),(1008,1007,'客服5','客服5','118');
+
+select * from servers;
+
+ create table orderqw(
+O_ID int(11) not null primary key comment '订单ID',
+ NAME varchar(20) not null comment '订单名称',
+  NUM int(4) not null comment '数量',
+ PRICE decimal(10) not null comment '价格',
+  USER_NAME varchar(20) not null comment '买家姓名',
+  USER_NOTE varchar(255) comment '买家备注',
+   ORDER_TIME datetime not null comment '下单时间',
+   PAY_STATUS int(1) not null comment '支付状态',
+   SALLER_NOTE varchar(255) comment '卖家备注',
+    S_ID int(11) commment '客服ID',
+   PCG_ID int(11)  foreign key  comment '话务包ID');
+
+
+
+insert into orderqw values (1,'苹果',5,10.00,'小张','要新鲜','2020-1-26 14:00:19',0,null,1002),
+(2,'花生',15,100.00,'李四','粒大','2020-4-26 14:06:06',0,null,1003),
+(3,'葡萄',50,200.00,'李武','新鲜','2020-6-16 13:00:19',0,null,1005),
+(4,'李子',66,160.00,'王武',null,'2020-1-06 16:00:19',1,null,1006),
+(5,'栗子',5,190.00,'张三','新鲜','2020-1-23 18:00:19',1,null,1003),
+(6,'牛奶',35,510.00,'李六','新鲜','2020-1-26 15:00:19',1,null,1002),
+(7,'饼干',5,109.00,'陈七',null,'2020-1-27 14:20:19',0,null,1005),
+(8,'曲奇',65,300.00,'里斯',null,'2020-1-16 14:30:19',0,null,1006),
+(9,'糖',75,190.00,'五五',null,'2020-5-26 14:07:19',1,null,1003),
+(10,'水果干',25,100.00,'小明',null,'2020-10-26 14:08:19',0,null,1002);
+
+
+select S.user_name as FN,
+S.S_ID as FID,
+B.S_ID as KID
+FROM
+  servers as S
+  inner join servers as B on S.S_ID=B.P_ID;
+
+
+
+
+select FB.FN AS FN,
+FB.FID AS FID,
+FB.KID AS KID,
+IFNULL( COUNT( DISTINCT `orderqw`.O_ID ), 0 ) AS ONUM 
+FROM( SELECT
+S.user_name AS FN,
+S.S_ID AS FID,
+B.S_ID AS KID 
+FROM
+servers AS S
+INNER JOIN servers AS B ON S.S_ID = B.P_ID 
+) AS FB
+LEFT JOIN `orderqw` ON FB.KID = `orderqw`.S_ID 
+GROUP BY
+orderqw.S_ID,FB.FN,FB.FID,FB.KID;
+
+
+select TG.FID AS '服务商 ID',
+TG.FN AS '服务商名称',
+COUNT( TG.KID ) AS '客服数',
+SUM( TG.ONUM ) AS '客服订单数' 
+FROM
+(
+select FB.FN AS FN,
+FB.FID AS FID,
+FB.KID AS KID,
+IFNULL( COUNT( DISTINCT `orderqw`.O_ID ), 0 ) AS ONUM 
+FROM( SELECT
+S.user_name AS FN,
+S.S_ID AS FID,
+B.S_ID AS KID 
+FROM
+servers AS S
+INNER JOIN servers AS B ON S.S_ID = B.P_ID 
+) AS FB
+LEFT JOIN `orderqw` ON FB.KID = `orderqw`.S_ID 
+GROUP BY
+orderqw.S_ID,FB.FN,FB.FID,FB.KID
+) AS TG
+ GROUP BY TG.FID
+ORDER BY TG.FID;
+
+
+
+
+
+

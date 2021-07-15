@@ -1,0 +1,16 @@
+创建一个用户名为test1密码为123456的用户
+create user'test1'@'%' identified by '123456';
+
+刷新授权
+flush privileges;
+
+查看权限
+show grants for 'test1'@'%';
+
+授权操作
+grant select,insert on cloudservers.myorder to 'test1'@'%';
+
+flush privileges;
+
+删除权限
+revoke insert on cloudservers.myorder from 'test1'@'%';

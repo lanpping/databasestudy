@@ -1,0 +1,119 @@
+第一题：分区表
+cd C:\Program Files (x86)\mysql-8.0.23-winx64\bin
+
+mysql -u root -p
+
+create database zytest;
+
+use zytest;
+
+
+1. 创建用户list分区表 （用户类型客服p1,服务商p2）
+create table userlist(user_id int(11) not null,name varchar(20),user_type int(1) not null default 1,
+primary key(user_id,user_type))
+partition by list(user_type)
+(
+   partition p1 values in(1),
+   partition p2 values in(0)
+);
+2. 插入数据
+insert into userlist values
+(1001,'服务商1',0),(1002,'客服1',1),(1003,'客服2',1),(1004,'服务商2',0),(1005,'客服3',1),
+(1006,'服务商3',0),(1007,'服务商4',0),(1008,'客服4',1),(1009,'客服5',1),
+(1010,'服务商5',0),(1011,'服务商6',0),(1012,'客服6',1);
+
+select *from userlist;
+
+3. 查看数据表的分区
+show create table userlist \G;
+
+//数据库分区数据情况
+//老师ppt
+select partition_name,partition_description as val from information_schema.partitions 
+where table_name='userlist' and table_schema='test';
+
+//网上例子
+select partition_name,partition_description,table_rows from information_schema.partitions where table_name='userlist';
+
+//查询数据库详细数据量
+select * from userlist partition(p1);
+
+
+第二题：数据压缩测试（时间和大小）
+//创建压缩表前需要启用独立表空间参数
+set global innodb_file_per_table=1;
+//mysql8已经删除了innodb_file_format
+set global innodb_file_format=Barracuda;
+
+
+CREATE TABLE `mytable` (
+  id int(11) not null auto_increment,
+  name varchar(10),
+  num int(10) not null,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+DELIMITER //
+CREATE FUNCTION `rand_string` (n INT) RETURNS VARCHAR(255)
+DETERMINISTIC
+BEGIN
+    DECLARE chars_str VARCHAR(100) DEFAULT 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    DECLARE return_str VARCHAR(255) DEFAULT '';
+    DECLARE i INT DEFAULT 0;
+    WHILE i < n DO
+        SET return_str = CONCAT(return_str,SUBSTRING(chars_str , FLOOR(1 + RAND()*62 ),1));
+        SET i = i +1;
+    END WHILE;
+    RETURN return_str;
+END //
+
+DELIMITER //
+CREATE PROCEDURE `add_mytable`(n int)
+BEGIN
+    DECLARE i INT UNSIGNED DEFAULT 0;
+    WHILE (i <= n) DO
+        INSERT INTO `mytable`(NAME,NUM) 
+        VALUES (rand_string(6),FLOOR(RAND()*100));
+        SET i = i+1;
+    END WHILE;
+END //
+
+DELIMITER ;
+call add_mytable(30000);
+
+
+
+
+//完全复制表
+//创建表且拷贝结构
+create table mytable_1 like mytable;
+//拷贝原表全部数据到另一个表
+insert into mytable_1 select * from mytable;
+
+//或者
+create table mytable_1 select * from mytable;
+create table mytable_2 select * from mytable;
+create table mytable_3 select * from mytable;
+create table mytable_4 select * from mytable;
+create table mytable_5 select * from mytable;
+
+
+//压缩表
+alter table mytable_1 key_block_size=1;
+alter table mytable_2 key_block_size=2;
+alter table mytable_3 key_block_size=4;
+alter table mytable_4 key_block_size=8;
+alter table mytable_5 key_block_size=16;
+
+不同key_Block_size的压缩率：
+ mytable_1:  5120/9216≈0.5555≈55.6%
+ mytable_2:   3072/9216≈0.3333≈33.3%
+ mytable_3:   3072/9216≈0.3333≈33.3%
+ mytable_4:   5120/9216≈0.5555≈55.6%
+ mytable_5:   7168/9216≈0.7777≈77.8%
+
+
+
+
+
+

@@ -1,0 +1,98 @@
+
+show index from myorder;
+
+drop index 索引名 on myorder;
+
+
+独立的列：
+
+explain select * from myorder where price=85;
+
+
+
+前缀索引：
+
+select count(distinct(user_adree))/count(*) as sele from myorder;
+
+select count(distinct(left(user_adree,6)))/count(*) as sele6 from myorder;
+
+alter table myorder add key(user_adree(6));
+
+explain select * from myorder where user_adree="59mcIP";
+
+
+
+
+多列索引：
+
+alter table myorder add index time_status_num(order_time,pay_status,num);
+
+explain select * from myorder where order_time="2021-4-01 18:38:03" and pay_status=1 and num=5;
+
+
+选择合适的索引列顺序：
+
+alter table myorder add key(user_tel);
+alter table myorder add key(num);
+
+
+select count(distinct pay_status)/count(*) as pay_status_selectivity,
+count(distinct num)/count(*) as num_selectivity,
+count(*)  from myorder\G;
+
+explain select * from myorder where num=34 and pay_status=1;
+
+select count(distinct user_tel)/count(*) as tel_selectivity,
+count(distinct num)/count(*) as num_selectivity,
+count(*)  from myorder\G;
+explain select * from myorder where num=46 and user_tel=93;
+
+
+数据类型隐式转换：
+若定义的是varchar类型，传入的是int型，则会发生隐式转换，导致索引失效
+若是int型转成varchar型，则不会发生隐式转换，除非传入的字符串大小超过int定义的长度
+
+alter table myorder add key(s_id);
+
+explain select * from myorder where s_id=2006;
+
+explain select * from myorder where s_id="2006";
+
+drop index s_id on myorder;
+
+alter table myorder add key(name);
+
+explain select * from myorder where name="x4zuyb";
+
+explain select * from myorder where name=2006;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
